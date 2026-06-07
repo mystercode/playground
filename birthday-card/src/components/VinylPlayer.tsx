@@ -7,13 +7,14 @@ const TRACKS = [
   { artist: 'Orion Sun',    song: 'Smooth',      query: 'orion sun smooth'        },
 ] as const;
 
-const DEEZER = import.meta.env.DEV
-  ? '/deezer'
-  : 'https://api.deezer.com';
-
 async function fetchPreview(query: string): Promise<string | null> {
+  const deezerUrl = `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=1`;
+  // In dev use the Vite proxy; in production use corsproxy.io to bypass CORS
+  const url = import.meta.env.DEV
+    ? `/deezer/search?q=${encodeURIComponent(query)}&limit=1`
+    : `https://corsproxy.io/?${encodeURIComponent(deezerUrl)}`;
   try {
-    const res = await fetch(`${DEEZER}/search?q=${encodeURIComponent(query)}&limit=1`);
+    const res = await fetch(url);
     const data = await res.json();
     return data?.data?.[0]?.preview ?? null;
   } catch {
