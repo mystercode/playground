@@ -32,6 +32,13 @@ export default function VinylPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isSpinning = tapState === 'playing';
 
+  /* ── Auto-play first track on mount, then loop through queue ── */
+  useEffect(() => {
+    playTrack(0);
+    return () => { stopAudio(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /* ── Cleanup audio on unmount ── */
   useEffect(() => () => { audioRef.current?.pause(); }, []);
 
@@ -63,6 +70,27 @@ export default function VinylPlayer() {
     }
   }, []);
 
+  const playTrack = useCallback(async (idx: number) => {
+    setLoading(true);
+    const previewUrl = await fetchPreview(TRACKS[idx].query);
+    setLoading(false);
+    if (!previewUrl) return;
+    stopAudio();
+    const audio = new Audio(previewUrl);
+    audio.volume = 0.8;
+    audioRef.current = audio;
+    const nextIdx = (idx + 1) % TRACKS.length;
+    audio.onended = () => {
+      setTrackIdx(nextIdx);
+      playTrack(nextIdx);
+    };
+    audio.play().catch(() => {});
+    setTrackIdx(idx);
+    setTapState('playing');
+    setNoteVisible(true);
+    setTimeout(() => setNoteVisible(false), 1100);
+  }, [stopAudio]);
+
   async function handleTap() {
     if (tapState === 'idle' || tapState === 'playing') {
       // Odd tap: stop current audio, advance artist
@@ -73,24 +101,8 @@ export default function VinylPlayer() {
       setNoteVisible(true);
       setTimeout(() => setNoteVisible(false), 1100);
     } else {
-      // Even tap: fetch preview and play
-      const track = TRACKS[trackIdx];
-      setLoading(true);
-      const previewUrl = await fetchPreview(track.query);
-      setLoading(false);
-
-      if (!previewUrl) return; // silently fail
-
-      stopAudio();
-      const audio = new Audio(previewUrl);
-      audio.volume = 0.8;
-      audioRef.current = audio;
-      audio.play().catch(() => {});
-      audio.onended = () => setTapState('selected');
-
-      setTapState('playing');
-      setNoteVisible(true);
-      setTimeout(() => setNoteVisible(false), 1100);
+      // Even tap: play selected track
+      await playTrack(trackIdx);
     }
   }
 
