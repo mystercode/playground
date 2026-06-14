@@ -1,0 +1,10 @@
+{
+  "name": "one-rig",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix birthday-card",
+    "start": "npm run dev --prefix birthday-card",
+    "build": "npm run build --prefix birthday-card",
+    "preview": "npm run preview --prefix birthday-card"
+  }
+}
