@@ -1,72 +1,41 @@
 import { useState } from 'react';
 
 export default function DownloadButton() {
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<'idle' | 'copied'>('idle');
 
-  async function handleDownload() {
-    if (loading) return;
-    setLoading(true);
+  async function handleShare() {
+    const url  = window.location.href;
+    const data = { title: 'Happy Birthday Courtney! 🌼', url };
 
-    /* Hide elements that don't render well in canvas */
-    const daisyBg   = document.querySelector<HTMLElement>('.daisy-bg-wrapper');
-    const dlBtn     = document.querySelector<HTMLElement>('.dl-btn-wrapper');
-    if (daisyBg)  daisyBg.style.visibility  = 'hidden';
-    if (dlBtn)    dlBtn.style.visibility    = 'hidden';
-
-    try {
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ]);
-
-      const root = document.getElementById('root')!;
-      const canvas = await html2canvas(root, {
-        useCORS: true,
-        scale: 2,
-        backgroundColor: '#1A110A',
-        logging: false,
-      });
-
-      const imgW = canvas.width;
-      const imgH = canvas.height;
-      /* jsPDF uses pt; 1px = 0.75pt */
-      const pdfW = imgW * 0.75;
-      const pdfH = imgH * 0.75;
-
-      const pdf = new jsPDF({
-        orientation: pdfW > pdfH ? 'landscape' : 'portrait',
-        unit: 'pt',
-        format: [pdfW, pdfH],
-      });
-
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pdfW, pdfH);
-      pdf.save('happy-birthday-courtney.pdf');
-    } finally {
-      if (daisyBg)  daisyBg.style.visibility  = '';
-      if (dlBtn)    dlBtn.style.visibility    = '';
-      setLoading(false);
+    if (navigator.share && navigator.canShare?.(data)) {
+      // Native share sheet (iOS/Android) — includes "Add to Home Screen"
+      await navigator.share(data).catch(() => {});
+    } else {
+      // Desktop fallback: copy link
+      await navigator.clipboard.writeText(url).catch(() => {});
+      setState('copied');
+      setTimeout(() => setState('idle'), 2200);
     }
   }
 
   return (
     <div className="dl-btn-wrapper fixed bottom-5 right-5 z-50">
       <button
-        onClick={handleDownload}
-        disabled={loading}
-        aria-label="Save as PDF"
-        title="Save as PDF"
-        className="w-11 h-11 rounded-full flex items-center justify-center bg-[var(--color-btn)] text-[var(--color-cream)] shadow-lg transition-[background,transform] duration-200 hover:bg-[var(--color-btn-hover)] active:scale-95 disabled:opacity-60 touch-manipulation"
+        onClick={handleShare}
+        aria-label={state === 'copied' ? 'Link copied!' : 'Share / install'}
+        title={state === 'copied' ? 'Link copied!' : 'Share or add to home screen'}
+        className="w-11 h-11 rounded-full flex items-center justify-center bg-[var(--color-btn)] text-[var(--color-cream)] shadow-lg transition-[background,transform] duration-200 hover:bg-[var(--color-btn-hover)] active:scale-95 touch-manipulation"
       >
-        {loading ? (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="20" strokeLinecap="round">
-              <animateTransform attributeName="transform" type="rotate" from="0 8 8" to="360 8 8" dur="0.8s" repeatCount="indefinite"/>
-            </circle>
+        {state === 'copied' ? (
+          /* checkmark */
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/>
           </svg>
         ) : (
+          /* share/upload icon */
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <path d="M8 1a1 1 0 0 1 1 1v6.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 1.414-1.414L7 8.586V2a1 1 0 0 1 1-1Z"/>
-            <path d="M2 12a1 1 0 0 1 1 1h10a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1Z" opacity="0.7"/>
+            <path d="M8 1a.75.75 0 0 1 .75.75V8.19l1.97-1.97a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 1.06-1.06L7.25 8.19V1.75A.75.75 0 0 1 8 1Z"/>
+            <path d="M3.25 10a.75.75 0 0 1 .75.75v2.5h8v-2.5a.75.75 0 0 1 1.5 0v2.5A1.5 1.5 0 0 1 12 14.5H4A1.5 1.5 0 0 1 2.5 13v-2.25A.75.75 0 0 1 3.25 10Z" opacity="0.7"/>
           </svg>
         )}
       </button>

@@ -3,11 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import VinylPlayer from './VinylPlayer';
 
 const CANDLE_COUNT = 6;
-const LYRIC = '"It\'s the little things that gets me high." — Jorja Smith';
+
+const TRACK_LYRICS = [
+  '"It\'s the little things that gets me high." — Jorja Smith, Little Things',
+  '"Take your chances, take your time — it\'s all yours." — Kaytranada, Chances',
+  '"Stay smooth, let the music carry you." — Orion Sun, Smooth',
+] as const;
 
 const LINES: Array<string | ((n: string) => string)> = [
   (n: string) => `Dear ${n},`,
-  'Twenty-four years of you — and the world is better for it.',
+  'Twenty-four years of you — every one of them a gift.',
   'May this year bring you the music that moves you,',
   'the quiet you need, and every small thing that makes you feel fully alive.',
 ];
@@ -135,11 +140,13 @@ interface CardInsideProps {
   name: string;
   age: number;
   onAllOut?: () => void;
+  onOpenWishes?: () => void;
 }
 
-export default function CardInside({ name, onAllOut }: CardInsideProps) {
+export default function CardInside({ name, onAllOut, onOpenWishes }: CardInsideProps) {
   const [lit, setLit]             = useState<Set<number>>(new Set());
   const [cakeVisible, setCakeVisible] = useState(false);
+  const [lyric, setLyric]         = useState<string>(TRACK_LYRICS[0]);
   const allOutFired = useRef(false);
 
   const allLit = lit.size === CANDLE_COUNT;
@@ -220,13 +227,38 @@ export default function CardInside({ name, onAllOut }: CardInsideProps) {
 
       {/* Vinyl + Lyric */}
       <div className="flex items-center gap-3.5">
-        <VinylPlayer />
+        <VinylPlayer onTrackChange={idx => setLyric(TRACK_LYRICS[idx])} />
         <blockquote className="flex-1 border-l-2 border-[var(--color-daisy-ctr)] pl-3">
-          <p className="font-[var(--font-display)] italic text-[12px] leading-relaxed text-[var(--color-muted)]">
-            {LYRIC}
-          </p>
+          <motion.p
+            key={lyric}
+            className="font-[var(--font-display)] italic text-[12px] leading-relaxed text-[var(--color-muted)]"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+          >
+            {lyric}
+          </motion.p>
         </blockquote>
       </div>
+
+      {/* Wishes button — breathing pulse */}
+      <motion.button
+        onClick={onOpenWishes}
+        className="self-center bg-[var(--color-btn)] text-[var(--color-cream)] rounded-full px-8 py-3 text-[14px] font-medium tracking-wide"
+        animate={{
+          scale: [1, 1.055, 1],
+          boxShadow: [
+            '0 4px 14px rgba(124,74,45,0.30)',
+            '0 6px 24px rgba(124,74,45,0.58)',
+            '0 4px 14px rgba(124,74,45,0.30)',
+          ],
+        }}
+        transition={{ repeat: Infinity, duration: 2.3, ease: 'easeInOut' }}
+        whileHover={{ scale: 1.10 }}
+        whileTap={{ scale: 0.94 }}
+      >
+        ✨ Wishes
+      </motion.button>
 
     </div>
   );

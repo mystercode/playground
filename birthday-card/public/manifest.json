@@ -1,0 +1,19 @@
+{
+  "name": "Happy Birthday Courtney!",
+  "short_name": "Birthday 🌼",
+  "description": "A birthday card for Courtney's 24th — interactive, with music and wishes.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#1A110A",
+  "theme_color": "#C4892D",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

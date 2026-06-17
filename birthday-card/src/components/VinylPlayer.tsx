@@ -22,7 +22,11 @@ async function fetchPreview(query: string): Promise<string | null> {
   }
 }
 
-export default function VinylPlayer() {
+interface VinylPlayerProps {
+  onTrackChange?: (idx: number) => void;
+}
+
+export default function VinylPlayer({ onTrackChange }: VinylPlayerProps) {
   const [trackIdx, setTrackIdx]     = useState(0);
   // 'idle' → first tap selects artist → 'selected' → second tap plays → 'playing'
   const [tapState, setTapState]     = useState<'idle' | 'selected' | 'playing'>('idle');
@@ -87,6 +91,7 @@ export default function VinylPlayer() {
     audio.play().catch(() => {});
     setTrackIdx(idx);
     setTapState('playing');
+    onTrackChange?.(idx);
     setNoteVisible(true);
     setTimeout(() => setNoteVisible(false), 1100);
   }, [stopAudio]);
