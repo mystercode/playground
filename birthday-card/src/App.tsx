@@ -5,7 +5,7 @@ import BirthdayCard from './components/BirthdayCard';
 import DownloadButton from './components/DownloadButton';
 import DaisyIcon from './components/DaisyIcon';
 
-const UNLOCK_AT = 0; // disabled for testing — set to new Date('2026-06-21T01:00:00').getTime() to re-enable
+const UNLOCK_AT = new Date('2026-06-21T01:00:00').getTime();
 
 const HYPE_MSGS = [
   { emoji: '🎉', text: "IT'S ALMOST TIME!!", sub: 'Something special is coming for you…' },
